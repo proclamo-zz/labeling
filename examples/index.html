@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<style>
+
+.countries {
+  fill: #ccc;
+  stroke: #fff;
+}
+.place,
+.place-label {
+  fill: #444;
+}
+
+text {
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-size: 10px;
+  pointer-events: none;
+}
+
+.map svg {
+  background-color: white;
+}
+
+.land {
+  opacity: .7;
+  stroke: #888; 
+}
+
+div.legend {
+  position: absolute;
+  font-size: 10px;
+  top: 10px;
+  left: 950px;
+}
+
+div.legend ul {
+  list-style-type: none;
+}
+
+div.legend .counter {
+  font-weight: bold;
+}
+
+</style>
+<body>
+<script src="d3.v3.min.js"></script>
+<script src="topojson.v1.min.js"></script>
+<script src="../labeling.js"></script>
+
+<script>
+var width = 960,
+    height = 500;
+
+var projection = d3.geo.mercator()
+    .center([0,37])
+    .scale(450 / Math.PI)
+    .translate([width / 2, height / 2]);
+
+var path = d3.geo.path()
+.projection(projection);
+
+var svg = d3.select("body").append("svg")
+    .attr("width", width)
+    .attr("height", height);
+
+d3.json("world.json", function(error, world) {
+
+  var countries = topojson.feature(world, world.objects.countries),
+      geometries = countries.features;
+
+  svg.selectAll(".land")
+        .data(countries.features)
+        .enter()
+          .append("path")
+          .attr("class", "land")
+          .attr("d", path)
+          .style("fill", "#cacaca");
+
+  svg.selectAll(".place-label")
+        .data(geometries)
+      .enter()
+        .append("text")
+        .attr("class", "place-label")
+        .text(function(d) { return d.properties.name; })
+        .attr("x", function(d) { return path.centroid(d)[0]; })
+        .attr("y", function(d) { return path.centroid(d)[1]; });
+
+  //
+  // simple example with a legend
+  //                  
+  var labeling = d3.labeling()
+    .select('.place-label')    
+    .scale(.8)
+    .legend() 
+    .remove()
+    .align();
+
+  /*
+  //  
+  // a complex example with custom selection, custom function and a legend
+  //
+  var labeling = d3.labeling()
+    .select(function() { 
+        return d3.selectAll('.place-label')
+          .sort(function(a,b) { 
+              return d3.geo.area(b.geometry) - d3.geo.area(a.geometry); 
+          })
+        })
+    .custom(function(label){
+      label.attr('stroke', 'red');
+    })
+    .pass()
+    .legend()    
+    .remove()
+    .align();
+  */  
+      
+  var legend = d3.select('body')
+    .append('div')
+      .attr('class', 'legend')
+    .append('div')
+      .attr('class', 'counter')
+      .text("Visible countries: " + d3.selectAll('.place-label')[0].length + " of 177")
+    .append('ul');
+
+  legend.selectAll('.legend')  
+    .data(labeling.getLegend())
+    .enter()
+      .append('li')
+      .text(function(d) { return d.key + ': ' + d.name; });
+
+
+  });
+  
+</script>
+

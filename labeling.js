@@ -13,7 +13,7 @@ d3.labeling = function() {
 	var getLabels = function() {
 
 		if (typeof className === "string") {
-			return svg.selectAll(className);	
+			return d3.selectAll(className);	
 		}
 		else {
 			return className.call(this);

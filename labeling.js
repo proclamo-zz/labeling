@@ -79,7 +79,7 @@ d3.labeling = function() {
 
 	var next = function(label) {
 
-		var box = getBox(label);
+		var labelNode = label[0][0], box = getBox(labelNode);
 
 		var pos = label.attr("data-pos") || 0;
 
@@ -99,7 +99,7 @@ d3.labeling = function() {
 			}
 
 			pos = 0;
-			box = getBox(label);
+			box = getBox(labelNode);
 
 			// prevent infinite loop
 			if (!callbacks.length) {
@@ -151,7 +151,7 @@ d3.labeling = function() {
 	}	
 
 	var getBox = function(d) {
-		return d[0][0].getBoundingClientRect();
+		return d.getBoundingClientRect();
 	}
 
 	labeling.align = function() {
@@ -163,11 +163,11 @@ d3.labeling = function() {
 
 			labels.each(function() {
 				var current = this;
-				var box_text = getBox(d3.select(current));
+				var box_text = getBox(current);
 
 				var _overlappeds = labels[0].filter(function(d) {
 					if (d === current) return false;
-					return overlaps(box_text, getBox(d3.select(d)));
+					return overlaps(box_text, getBox(d));
 				});
 
 				overlappeds += _overlappeds.length;

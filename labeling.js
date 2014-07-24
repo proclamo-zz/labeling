@@ -2,7 +2,8 @@
 d3.labeling = function() {
 
 	var labeling = {}, className, labels, callbacks = [], callbackpos = -1,
-		updateLabels = false, _break = false, legend = [];	
+		updateLabels = false, _break = false, legend = [],
+		scaleds = removeds = passeds = customs = 0;	
 
 	labeling.select = function(_className) {
 		className = _className;
@@ -47,17 +48,21 @@ d3.labeling = function() {
 	}
 
 	labeling.pass = function() {
-		callbacks.push(function(){});
+		callbacks.push(labeling_pass);
 		return labeling;
 	}
 
 	labeling.custom = function(fn) {
-		callbacks.push(fn);
+		callbacks.push(function(label) {
+			customs++;
+			return fn.call(this, label);
+		});
 		return labeling;
 	}
 
 	var labeling_remove = function(label) {
 		label.remove();
+		removeds++;
 	}
 
 	var labeling_scale = function(label,factor) {
@@ -67,6 +72,8 @@ d3.labeling = function() {
 			transform = "translate(" + (x * scaleFactor) + "," + (y * scaleFactor) + ") scale(" + factor + ")";
 
 		label.attr("transform", transform);
+
+		scaleds++;
 	}
 
 	var labeling_legend = function(label) {
@@ -75,6 +82,10 @@ d3.labeling = function() {
 
 		label.text(legend.length);
 
+	}
+
+	var labeling_pass = function(label) {
+		passeds++;
 	}
 
 	var next = function(label) {
@@ -192,6 +203,15 @@ d3.labeling = function() {
 		return legend.map(function(d, i) {
 			return { key: i + 1, name: d }
 		});
+	}
+
+	labeling.getStats = function() {
+		return {
+			passeds: passeds,
+			removeds: removeds,
+			customs: customs,
+			scaleds: scaleds
+		}
 	}
 
 	return labeling;
